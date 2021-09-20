@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +19,7 @@ namespace TestTask2
 
             string text;
 
-            var triplets = new Dictionary<string, int>();
+            var triplets = new ConcurrentDictionary<string, int>();
 
             using (var fileStream = new FileStream(args[0], FileMode.OpenOrCreate))
             {
@@ -35,16 +36,9 @@ namespace TestTask2
                 {
                     var triplet = new StringBuilder(3).Append(text[i]).Append(text[i + 1]).Append(text[i + 2]).ToString();
 
-                    lock (locker)
+                    if (!triplets.TryAdd(triplet, 1))
                     {
-                        if (triplets.ContainsKey(triplet))
-                        {
-                            triplets[triplet]++;
-                        }
-                        else
-                        {
-                            triplets.Add(triplet, 1);
-                        }
+                        ++triplets[triplet];
                     }
                 }
             });
